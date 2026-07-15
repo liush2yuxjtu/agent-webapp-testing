@@ -2,11 +2,11 @@
 
 [English](README.md) | 简体中文
 
-**AI Agent 界面连续 15 秒无可见进度，UAT 直接失败。**
+**不怕动态文案，让每一次无声卡死都变成明确失败。**
 
-面向流式对话、工具调用型 Agent 和人机协作工作流的轻量 Playwright Python wrapper。在 Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing) 基础上补充 Agent 状态检查。
+Agent 可能不报错、不结束，也不再产生输出。这个轻量 Playwright Python wrapper 在界面连续 15 秒无可见进度时抓住它，同时避免使用模型生成文案作为 selector。
 
-任务运行五分钟可以通过。界面静默 15 秒不能通过。
+基于 Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing)，适用于流式对话、工具调用型 Agent 和人机协作工作流。
 
 ## 为什么需要它
 
@@ -20,10 +20,10 @@ submit -> running -> streaming -> waiting_user -> resumed -> completed
 
 ## 检查内容
 
-- 每 15 秒至少出现一次可见文本或状态变化
-- 流式进度正常，同时不限制任务总时长
+- 通过稳定语义 selector 适配动态模型文案
+- 连续 15 秒没有可见文本或状态变化
+- streaming 停滞检测，同时不限制任务总时长
 - `waiting_user` 提问和同一流程恢复
-- 通过稳定语义 selector 适配动态问题文案
 - Agent 显式错误和非空最终回答
 
 ## 快速开始

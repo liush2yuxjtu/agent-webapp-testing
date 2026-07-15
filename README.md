@@ -2,11 +2,11 @@
 
 English | [简体中文](README.zh-CN.md)
 
-**Fail AI agent UAT when users see no progress for 15 seconds.**
+**Survive dynamic wording. Turn every silent stall into an explicit failure.**
 
-Small Playwright Python wrapper for streaming chat, tool-using agents, and human-in-the-loop workflows. It adds agent state checks to [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing).
+An agent can stop producing output without failing or finishing. This small Playwright Python wrapper catches that state after 15 seconds without visible progress. It also keeps model-generated wording out of selectors.
 
-A five-minute task can pass. A 15-second silent screen cannot.
+Built on [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing) for streaming chat, tool-using agents, and human-in-the-loop workflows.
 
 ## Why this exists
 
@@ -20,10 +20,10 @@ A final-answer assertion misses stalled streams, invisible tool work, broken que
 
 ## What it tests
 
-- visible text or state changes at least once every 15 seconds
-- streaming progress without imposing a short total timeout
+- dynamic model wording through stable semantic selectors
+- no visible text or state change for 15 seconds
+- stalled streaming without imposing a short total timeout
 - `waiting_user` questions and same-flow resume
-- dynamic question text through stable semantic selectors
 - explicit Agent errors and non-empty final output
 
 ## Quick start
