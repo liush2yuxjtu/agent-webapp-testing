@@ -26,27 +26,11 @@ A final-answer assertion misses stalled streams, invisible tool work, broken que
 - `waiting_user` questions and same-flow resume
 - explicit Agent errors and non-empty final output
 
-## Install in Codex
-
-```bash
-git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git \
-  "$HOME/.agents/skills/agent-webapp-testing"
-```
-
-For one repository, clone it to `.agents/skills/agent-webapp-testing` inside that repository. Restart Codex, then ask it to use `agent-webapp-testing`. See [Using skills in Codex](https://developers.openai.com/codex/skills).
-
-## Install in Claude
-
-- **Claude.ai:** Download this repository as a ZIP, upload it through the custom-skill uploader, then enable it.
-- **Claude Code:** Copy the whole repository into a supported user or project Agent Skills location, keeping `SKILL.md` at the skill root, then restart Claude Code.
-
-Ask Claude to use `agent-webapp-testing` by name. Follow Anthropic's official custom-skill guide for the current product and version.
-
 ## Quick start
 
-From the installed or extracted skill directory:
-
 ```bash
+git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git
+cd agent-webapp-testing
 python -m pip install pytest pytest-playwright
 playwright install chromium
 ```
