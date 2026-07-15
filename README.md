@@ -1,5 +1,7 @@
 # Agent Web App Testing
 
+English | [简体中文](README.zh-CN.md)
+
 Playwright Python testing for AI agent web apps: streaming chat, visible progress, human-in-the-loop questions, pause, and resume.
 
 Agent interfaces often fail between submission and final answer: silent waits, stalled streams, broken input prompts, or sessions that never resume. This small wrapper adds those checks to [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing).
