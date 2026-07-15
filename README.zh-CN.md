@@ -26,26 +26,58 @@ submit -> running -> streaming -> waiting_user -> resumed -> completed
 - `waiting_user` 提问和同一流程恢复
 - Agent 显式错误和非空最终回答
 
-## 快速开始
+## 安装
+
+这是 Agent Skill，不是 Python 包。`SKILL.md` 与 `templates/` 必须保留在同一个 Skill 目录。安装 Skill 本身不需要 `pip install`。
+
+### Codex
+
+安装到用户级，对所有项目生效：
+
+```bash
+git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git \
+  "$HOME/.agents/skills/agent-webapp-testing"
+```
+
+如需仅供一个项目使用，把仓库 clone 到项目内的 `.agents/skills/agent-webapp-testing`。重启 Codex，然后输入：
+
+```text
+使用 agent-webapp-testing 测试这个 AI Agent UI。
+```
+
+详见 [Codex Skills 文档](https://developers.openai.com/codex/skills)。
+
+### Claude Code
+
+把整个仓库复制到当前版本支持的用户级或项目级 Agent Skills 位置，确保 `SKILL.md` 位于 Skill 根目录。重启 Claude Code，然后要求它使用 `agent-webapp-testing`。具体位置以 Anthropic 当前自定义 Skill 文档为准。
+
+### Claude.ai
+
+创建 `SKILL.md` 位于 ZIP 根目录的上传包：
 
 ```bash
 git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git
 cd agent-webapp-testing
-python -m pip install pytest pytest-playwright
-playwright install chromium
+zip -r ../agent-webapp-testing.zip SKILL.md templates
 ```
 
-然后：
+通过 Claude.ai 自定义 Skills 上传并启用 `agent-webapp-testing.zip`，然后要求 Claude 使用 `agent-webapp-testing`。
 
-1. 启动待测试 Web 应用。
-2. 修改 `templates/test_agent_flow.py` 中的 URL、提示词和 selector。
-3. 运行：
+### 推荐配套 Skill
+
+这个 wrapper 基于 Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing)。需要浏览器探查、截图、trace 和服务管理时，建议同时安装两者。
+
+### 运行 Python 模板
+
+仅运行测试模板时需要 Playwright 依赖：
 
 ```bash
+python -m pip install pytest pytest-playwright
+python -m playwright install chromium
 pytest templates/test_agent_flow.py
 ```
 
-脚本是通用模板，接入具体应用时必须调整 selector。浏览器生命周期、trace、截图和服务管理继续由 `webapp-testing` 或现有 Playwright 测试框架负责。
+运行前先启动目标应用，并修改 `templates/test_agent_flow.py` 中的 URL、提示词和稳定 selector。
 
 ## UI 契约
 

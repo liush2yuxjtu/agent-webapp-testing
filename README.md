@@ -26,26 +26,58 @@ A final-answer assertion misses stalled streams, invisible tool work, broken que
 - `waiting_user` questions and same-flow resume
 - explicit Agent errors and non-empty final output
 
-## Quick start
+## Installation
+
+This repository is an Agent Skill, not a Python package. Keep `SKILL.md` and `templates/` in the same skill directory. Installing the skill does not require `pip install`.
+
+### Codex
+
+Install for all projects:
+
+```bash
+git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git \
+  "$HOME/.agents/skills/agent-webapp-testing"
+```
+
+For one project, clone it to `.agents/skills/agent-webapp-testing` inside that project. Restart Codex, then prompt:
+
+```text
+Use agent-webapp-testing to test this AI Agent UI.
+```
+
+See [Using skills in Codex](https://developers.openai.com/codex/skills).
+
+### Claude Code
+
+Copy the whole repository into a supported user-level or project-level Agent Skills location, keeping `SKILL.md` at the skill root. Restart Claude Code, then ask it to use `agent-webapp-testing`. Follow Anthropic's current custom-skill documentation for the location used by your version.
+
+### Claude.ai
+
+Create an upload-ready ZIP with `SKILL.md` at its root:
 
 ```bash
 git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git
 cd agent-webapp-testing
-python -m pip install pytest pytest-playwright
-playwright install chromium
+zip -r ../agent-webapp-testing.zip SKILL.md templates
 ```
 
-Then:
+Upload `agent-webapp-testing.zip` through Claude.ai custom Skills, enable it, then ask Claude to use `agent-webapp-testing`.
 
-1. Start the web app under test.
-2. Update URL, prompt, and selectors in `templates/test_agent_flow.py`.
-3. Run:
+### Recommended companion skill
+
+This wrapper builds on Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing). Install both when browser discovery, screenshots, traces, and server management are needed.
+
+### Run the Python template
+
+Playwright dependencies are needed only when running the template:
 
 ```bash
+python -m pip install pytest pytest-playwright
+python -m playwright install chromium
 pytest templates/test_agent_flow.py
 ```
 
-The script is a template, so selector adaptation is required. Browser lifecycle, traces, screenshots, and server management stay with `webapp-testing` or the existing Playwright harness.
+Before running, start the target app and update URL, prompt, and stable selectors in `templates/test_agent_flow.py`.
 
 ## UI contract
 
