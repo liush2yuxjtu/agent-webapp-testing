@@ -26,11 +26,27 @@ submit -> running -> streaming -> waiting_user -> resumed -> completed
 - `waiting_user` 提问和同一流程恢复
 - Agent 显式错误和非空最终回答
 
-## 快速开始
+## 安装到 Codex
 
 ```bash
-git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git
-cd agent-webapp-testing
+git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git \
+  "$HOME/.agents/skills/agent-webapp-testing"
+```
+
+如需仅供一个项目使用，把仓库 clone 到该项目的 `.agents/skills/agent-webapp-testing`。重启 Codex，然后要求它使用 `agent-webapp-testing`。详见 [Codex Skills 文档](https://developers.openai.com/codex/skills)。
+
+## 安装到 Claude
+
+- **Claude.ai：** 下载本仓库 ZIP，通过自定义 Skill 上传入口导入并启用。
+- **Claude Code：** 把整个仓库复制到支持的用户级或项目级 Agent Skills 位置，确保 `SKILL.md` 位于 Skill 根目录，然后重启 Claude Code。
+
+按名称要求 Claude 使用 `agent-webapp-testing`。具体位置和入口以 Anthropic 当前产品版本的自定义 Skill 文档为准。
+
+## 快速开始
+
+进入已安装或解压的 Skill 目录：
+
+```bash
 python -m pip install pytest pytest-playwright
 playwright install chromium
 ```
