@@ -119,12 +119,12 @@ Checkpoint 是开发者 Fixture，不是专家用户功能。它让大多数 UI 
 └── <full-commit-sha>/
     └── waiting-user/
         ├── manifest.json
-        └── state.json
+        └── response.sse
 ```
 
 Fixture 保存在已被 Git 忽略的 `.agent/` 下。`manifest.json` 记录 `source_commit` 和 `expected_state`；加载前必须与 `git rev-parse HEAD` 精确比较。缺失或不匹配时立即失败并提示重新生成，不能静默回退到慢 Agent 流程。
 
-Checkpoint 恢复后仍从应用正常 URL 进入，并先断言 `data-agent-state`。同时保留一条从 Prompt 开始的真实 Agent UAT，验证完整集成路径。设计细节和最小 loader 见 [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md)。
+使用 `templates/resume_checkpoint.py` 通过 Playwright 回放捕获的 SSE，再从应用正常 URL 进入，并在交互前断言 `data-agent-state`。同时保留一条从 Prompt 开始的真实 Agent UAT，验证完整集成路径。完整示例见 [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md)。
 
 ## 静默规则
 
@@ -137,13 +137,14 @@ AssertionError: No visible Agent progress for 15 seconds
 ## 仓库内容
 
 - `SKILL.md`：面向 coding agent 的简短操作指南
-- `templates/test_agent_flow.py`：代码简单、注释详细的测试模板
+- `templates/test_agent_flow.py`：真实完整流程测试模板
+- `templates/resume_checkpoint.py`：Playwright checkpoint 回放助手
 - `references/selector-contract.md`：动态文案安全的 selector 设计
 - `references/checkpoint-fixtures.md`：commit 锁定的本地 checkpoint 设计
 
 ## 范围
 
-一个指南、一个模板、两个小型设计参考，不造新框架。Playwright 已经做好的部分继续复用现有能力。
+一个指南、两个小模板、两个设计参考，不造新框架。Playwright 已经做好的部分继续复用现有能力。
 
 ## License
 

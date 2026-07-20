@@ -119,12 +119,12 @@ A checkpoint is a developer fixture, not an expert-user feature. It lets most UI
 └── <full-commit-sha>/
     └── waiting-user/
         ├── manifest.json
-        └── state.json
+        └── response.sse
 ```
 
 Fixtures live under the Git-ignored `.agent/` directory. Before loading one, compare its `source_commit` with `git rev-parse HEAD` exactly. A missing or mismatched fixture must fail with a regeneration message rather than silently falling back to a slow Agent run.
 
-After restoring a checkpoint, enter through the normal application URL and assert `data-agent-state` first. Keep one real UAT that starts from the prompt to verify the full integration path. See [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md) for the design and minimal loader.
+Use `templates/resume_checkpoint.py` to replay the captured SSE response with Playwright, enter through the normal application URL, and assert `data-agent-state` before interacting. Keep one real UAT that starts from the prompt to verify the full integration path. See [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md) for the complete example.
 
 ## Silence rule
 
@@ -137,13 +137,14 @@ AssertionError: No visible Agent progress for 15 seconds
 ## Repository contents
 
 - `SKILL.md` — short operating guide for coding agents
-- `templates/test_agent_flow.py` — simple test template with detailed comments
+- `templates/test_agent_flow.py` — simple live-flow test template
+- `templates/resume_checkpoint.py` — Playwright checkpoint replay helper
 - `references/selector-contract.md` — selector design that survives dynamic wording
 - `references/checkpoint-fixtures.md` — commit-locked local checkpoint design
 
 ## Scope
 
-One guide, one template, and two small design references—no custom framework. Use the existing Playwright stack for everything it already handles well.
+One guide, two small templates, and two design references—no custom framework. Use the existing Playwright stack for everything it already handles well.
 
 ## License
 
