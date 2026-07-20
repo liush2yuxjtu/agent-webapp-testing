@@ -4,7 +4,7 @@ English | [简体中文](README.zh-CN.md)
 
 **Go grab a coffee. Let the test handle the rest.**
 
-This small Playwright Python wrapper checks the whole Agent flow from prompt to completion, tests “Agent asks—you answer—Agent continues,” and can save test states tied to the current code version so the next run does not start from scratch. Stable selector contracts handle dynamic wording, while 15 seconds without visible progress becomes an explicit failure.
+This small Playwright Python wrapper checks the whole Agent flow from prompt to completion, tests “Agent asks—you answer—Agent continues,” and saves the latest real runtime checkpoint so an interrupted run can continue after the bug is fixed. Smart selectors handle dynamic wording, while 15 seconds without visible progress becomes an explicit failure.
 
 Built on [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing) for streaming chat, tool-using agents, and human-in-the-loop workflows.
 
@@ -12,7 +12,7 @@ Built on [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tre
 
 - **Checks the whole journey** — from sending a task to final completion
 - **Handles Agent questions** — verifies that answering lets the same flow continue
-- **Skips the long wait next time** — resumes from a saved test state
+- **Resumes after a fix** — continues from the latest valid runtime checkpoint
 
 ## Why this exists
 
@@ -26,11 +26,11 @@ A final-answer assertion misses stalled streams, invisible tool work, broken que
 
 ## What it tests
 
-- dynamic model wording through stable semantic selectors
+- dynamic model wording through smart selectors
 - no visible text or state change for 15 seconds
 - stalled streaming without imposing a short total timeout
 - `waiting_user` questions and same-flow resume
-- local checkpoints locked to the full commit SHA
+- real runtime checkpoint save and recovery
 - explicit Agent errors and non-empty final output
 
 ## Installation
@@ -84,7 +84,7 @@ python -m playwright install chromium
 pytest templates/test_agent_flow.py
 ```
 
-Before running, start the target app and update URL, prompt, and stable selectors in `templates/test_agent_flow.py`.
+Before running, start the target app and configure its normal thread URL, runtime checkpoint APIs, prompt, and stable answer ID. See [`references/runtime-checkpoints.md`](references/runtime-checkpoints.md).
 
 ## UI contract
 
@@ -110,21 +110,13 @@ question.locator(
 
 Do not identify business choices by generated wording, translated text, display-only CSS classes, or `nth(2)`. See [`references/selector-contract.md`](references/selector-contract.md) for the full contract.
 
-## Commit-locked checkpoints
+## Runtime checkpoints
 
-A checkpoint is a developer fixture, not an expert-user feature. It lets most UI tests start directly from a fixed state such as `waiting_user` or `completed`, instead of waiting for the model to repeat earlier work.
+Every live test saves the latest valid checkpoint through the application's real persistence API. The local pointer stays under the Git-ignored `.agent/` directory and contains opaque runtime state, not recorded SSE.
 
-```text
-.agent/agent-webapp-checkpoints/
-└── <full-commit-sha>/
-    └── waiting-user/
-        ├── manifest.json
-        └── response.sse
-```
+After a bug interrupts the test, the next run first asks the real resume API to restore that checkpoint and continues through `completed`. Missing or explicitly incompatible state starts a fresh run instead. A successful recovery is followed by one complete from-scratch live test.
 
-Fixtures live under the Git-ignored `.agent/` directory. Before loading one, compare its `source_commit` with `git rev-parse HEAD` exactly. A missing or mismatched fixture must fail with a regeneration message rather than silently falling back to a slow Agent run.
-
-Use `templates/resume_checkpoint.py` to replay the captured SSE response with Playwright, enter through the normal application URL, and assert `data-agent-state` before interacting. Keep one real UAT that starts from the prompt to verify the full integration path. See [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md) for the complete example.
+Runtime checkpoints may contain sensitive state: never commit or publish them. See [`references/runtime-checkpoints.md`](references/runtime-checkpoints.md) for the API adapter contract.
 
 ## Silence rule
 
@@ -137,14 +129,13 @@ AssertionError: No visible Agent progress for 15 seconds
 ## Repository contents
 
 - `SKILL.md` — short operating guide for coding agents
-- `templates/test_agent_flow.py` — simple live-flow test template
-- `templates/resume_checkpoint.py` — Playwright checkpoint replay helper
-- `references/selector-contract.md` — selector design that survives dynamic wording
-- `references/checkpoint-fixtures.md` — commit-locked local checkpoint design
+- `templates/test_agent_flow.py` — live flow, checkpoint save, and recovery template
+- `references/selector-contract.md` — smart-selector contract for dynamic wording
+- `references/runtime-checkpoints.md` — real persistence and resume API contract
 
 ## Scope
 
-One guide, two small templates, and two design references—no custom framework. Use the existing Playwright stack for everything it already handles well.
+One guide, one template, and two design references—no custom framework. Use the existing Playwright stack for everything it already handles well.
 
 ## License
 

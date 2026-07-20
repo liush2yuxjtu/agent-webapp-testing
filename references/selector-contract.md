@@ -1,6 +1,6 @@
-# Agent UI selector contract
+# Smart-selector contract
 
-Use selectors that identify behavior, not model-generated wording.
+Smart selectors identify behavior, not model-generated wording.
 
 ## Required DOM contract
 

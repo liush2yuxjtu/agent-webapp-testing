@@ -4,7 +4,7 @@
 
 **你去喝咖啡，剩下的交给测试。**
 
-这个轻量 Playwright Python wrapper 会从发送任务一路检查到 Agent 完成，自动测试“Agent 提问—你回答—Agent 继续工作”，还可以保存与当前代码版本绑定的测试状态，下次不用从头再等。它使用稳定 selector 契约应对动态文案，并在界面连续 15 秒无可见进度时明确报告停滞。
+这个轻量 Playwright Python wrapper 会从发送任务一路检查到 Agent 完成，自动测试“Agent 提问—你回答—Agent 继续工作”，并默认保存最新真实 runtime checkpoint，让被 bug 中断的测试在修复后继续。它使用 smart-selector 应对动态文案，并在界面连续 15 秒无可见进度时明确报告停滞。
 
 基于 Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing)，适用于流式对话、工具调用型 Agent 和人机协作工作流。
 
@@ -12,7 +12,7 @@
 
 - **全过程检查**：从发送任务到最终完成，每一步都帮你确认
 - **自动接住提问**：测试“Agent 提问—你回答—Agent 继续工作”是否顺畅
-- **不用从头再等**：保存常用测试状态，下次直接从那里继续
+- **修复后继续**：从最近一个有效 runtime checkpoint 恢复
 
 ## 为什么需要它
 
@@ -26,11 +26,11 @@ submit -> running -> streaming -> waiting_user -> resumed -> completed
 
 ## 检查内容
 
-- 通过 `data-testid` 与 `data-answer-id` 适配动态模型文案
+- 通过 smart-selector 适配动态模型文案
 - 连续 15 秒没有可见文本或状态变化
 - streaming 停滞检测，同时不限制任务总时长
 - `waiting_user` 提问和同一流程恢复
-- 从与完整 commit SHA 绑定的本地 checkpoint 恢复测试状态
+- 真实 runtime checkpoint 保存与恢复
 - Agent 显式错误和非空最终回答
 
 ## 安装
@@ -84,7 +84,7 @@ python -m playwright install chromium
 pytest templates/test_agent_flow.py
 ```
 
-运行前先启动目标应用，并修改 `templates/test_agent_flow.py` 中的 URL、提示词和稳定 selector。
+运行前先启动目标应用，并配置正常 thread URL、runtime checkpoint API、提示词和稳定 answer ID。详见 [`references/runtime-checkpoints.md`](references/runtime-checkpoints.md)。
 
 ## UI 契约
 
@@ -110,21 +110,13 @@ question.locator(
 
 不要用生成文案、翻译文本、CSS 展示类或 `nth(2)` 标识业务选项。完整约定见 [`references/selector-contract.md`](references/selector-contract.md)。
 
-## Commit 锁定的 Checkpoint
+## Runtime Checkpoint
 
-Checkpoint 是开发者 Fixture，不是专家用户功能。它让大多数 UI 测试直接从 `waiting_user`、`completed` 等固定状态开始，不必重复等待模型完成前置工作。
+每条真实测试默认通过应用的真实持久化 API 保存最近一个有效 checkpoint。本地指针位于已被 Git 忽略的 `.agent/` 下，保存不透明运行状态，不录制 SSE。
 
-```text
-.agent/agent-webapp-checkpoints/
-└── <full-commit-sha>/
-    └── waiting-user/
-        ├── manifest.json
-        └── response.sse
-```
+测试被 bug 中断后，修复后的下一次运行先调用真实 resume API 恢复 checkpoint，并继续到 `completed`。checkpoint 缺失或被 API 明确判定为不兼容时才从头运行。恢复成功后，再执行一次完整干净重跑。
 
-Fixture 保存在已被 Git 忽略的 `.agent/` 下。`manifest.json` 记录 `source_commit` 和 `expected_state`；加载前必须与 `git rev-parse HEAD` 精确比较。缺失或不匹配时立即失败并提示重新生成，不能静默回退到慢 Agent 流程。
-
-使用 `templates/resume_checkpoint.py` 通过 Playwright 回放捕获的 SSE，再从应用正常 URL 进入，并在交互前断言 `data-agent-state`。同时保留一条从 Prompt 开始的真实 Agent UAT，验证完整集成路径。完整示例见 [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md)。
+Runtime checkpoint 可能包含敏感状态，禁止提交或发布。API 适配约定见 [`references/runtime-checkpoints.md`](references/runtime-checkpoints.md)。
 
 ## 静默规则
 
@@ -137,14 +129,13 @@ AssertionError: No visible Agent progress for 15 seconds
 ## 仓库内容
 
 - `SKILL.md`：面向 coding agent 的简短操作指南
-- `templates/test_agent_flow.py`：真实完整流程测试模板
-- `templates/resume_checkpoint.py`：Playwright checkpoint 回放助手
-- `references/selector-contract.md`：动态文案安全的 selector 设计
-- `references/checkpoint-fixtures.md`：commit 锁定的本地 checkpoint 设计
+- `templates/test_agent_flow.py`：真实流程、checkpoint 保存与恢复模板
+- `references/selector-contract.md`：适配动态文案的 smart-selector 契约
+- `references/runtime-checkpoints.md`：真实持久化与 resume API 契约
 
 ## 范围
 
-一个指南、两个小模板、两个设计参考，不造新框架。Playwright 已经做好的部分继续复用现有能力。
+一个指南、一个模板、两个设计参考，不造新框架。Playwright 已经做好的部分继续复用现有能力。
 
 ## License
 
