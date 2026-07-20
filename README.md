@@ -2,11 +2,17 @@
 
 English | [简体中文](README.zh-CN.md)
 
-**Survive dynamic wording. Turn every silent stall into an explicit failure.**
+**Go grab a coffee. Let the test handle the rest.**
 
-An agent can stop producing output without failing or finishing. This small Playwright Python wrapper catches that state after 15 seconds without visible progress. It also keeps model-generated wording out of selectors.
+This small Playwright Python wrapper checks the whole Agent flow from prompt to completion, tests “Agent asks—you answer—Agent continues,” and can save test states tied to the current code version so the next run does not start from scratch. Stable selector contracts handle dynamic wording, while 15 seconds without visible progress becomes an explicit failure.
 
 Built on [Anthropic's `webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing) for streaming chat, tool-using agents, and human-in-the-loop workflows.
+
+## What it does for you
+
+- **Checks the whole journey** — from sending a task to final completion
+- **Handles Agent questions** — verifies that answering lets the same flow continue
+- **Skips the long wait next time** — resumes from a saved test state
 
 ## Why this exists
 
@@ -24,6 +30,7 @@ A final-answer assertion misses stalled streams, invisible tool work, broken que
 - no visible text or state change for 15 seconds
 - stalled streaming without imposing a short total timeout
 - `waiting_user` questions and same-flow resume
+- local checkpoints locked to the full commit SHA
 - explicit Agent errors and non-empty final output
 
 ## Installation
@@ -58,7 +65,7 @@ Create an upload-ready ZIP with `SKILL.md` at its root:
 ```bash
 git clone https://github.com/liush2yuxjtu/agent-webapp-testing.git
 cd agent-webapp-testing
-zip -r ../agent-webapp-testing.zip SKILL.md templates
+zip -r ../agent-webapp-testing.zip SKILL.md templates references
 ```
 
 Upload `agent-webapp-testing.zip` through Claude.ai custom Skills, enable it, then ask Claude to use `agent-webapp-testing`.
@@ -94,11 +101,30 @@ Keep streamed output, tool status, questions, and visible heartbeat inside the A
 Question and answer wording may change by prompt, language, or model. Tests select semantic attributes instead of display text:
 
 ```python
-question = page.locator("[data-testid='agent-question']")
-question.locator("[data-testid='agent-answer-option']").first.click()
+agent = page.locator("[data-agent-state]")
+question = agent.locator("[data-testid='agent-question']")
+question.locator(
+    "[data-testid='agent-answer-option'][data-answer-id='approve']"
+).click()
 ```
 
-Add `data-answer-id` when a test must choose a specific business answer.
+Do not identify business choices by generated wording, translated text, display-only CSS classes, or `nth(2)`. See [`references/selector-contract.md`](references/selector-contract.md) for the full contract.
+
+## Commit-locked checkpoints
+
+A checkpoint is a developer fixture, not an expert-user feature. It lets most UI tests start directly from a fixed state such as `waiting_user` or `completed`, instead of waiting for the model to repeat earlier work.
+
+```text
+.agent/agent-webapp-checkpoints/
+└── <full-commit-sha>/
+    └── waiting-user/
+        ├── manifest.json
+        └── state.json
+```
+
+Fixtures live under the Git-ignored `.agent/` directory. Before loading one, compare its `source_commit` with `git rev-parse HEAD` exactly. A missing or mismatched fixture must fail with a regeneration message rather than silently falling back to a slow Agent run.
+
+After restoring a checkpoint, enter through the normal application URL and assert `data-agent-state` first. Keep one real UAT that starts from the prompt to verify the full integration path. See [`references/checkpoint-fixtures.md`](references/checkpoint-fixtures.md) for the design and minimal loader.
 
 ## Silence rule
 
@@ -112,10 +138,12 @@ AssertionError: No visible Agent progress for 15 seconds
 
 - `SKILL.md` — short operating guide for coding agents
 - `templates/test_agent_flow.py` — simple test template with detailed comments
+- `references/selector-contract.md` — selector design that survives dynamic wording
+- `references/checkpoint-fixtures.md` — commit-locked local checkpoint design
 
 ## Scope
 
-One guide, one template, no custom framework. Use the existing Playwright stack for everything it already handles well.
+One guide, one template, and two small design references—no custom framework. Use the existing Playwright stack for everything it already handles well.
 
 ## License
 

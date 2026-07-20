@@ -2,11 +2,17 @@
 
 [English](README.md) | 简体中文
 
-**不怕动态文案，不重复等待慢 Agent，也让每一次无声卡死都变成明确失败。**
+**你去喝咖啡，剩下的交给测试。**
 
-Agent 可能不报错、不结束，也不再产生输出。这个轻量 Playwright Python wrapper 使用稳定 selector 契约，在界面连续 15 秒无可见进度时抓住停滞；对于慢 Agent 之后的 UI 状态，还可以从与当前 commit 精确绑定的本地 checkpoint 开始测试。
+这个轻量 Playwright Python wrapper 会从发送任务一路检查到 Agent 完成，自动测试“Agent 提问—你回答—Agent 继续工作”，还可以保存与当前代码版本绑定的测试状态，下次不用从头再等。它使用稳定 selector 契约应对动态文案，并在界面连续 15 秒无可见进度时明确报告停滞。
 
 基于 Anthropic [`webapp-testing`](https://github.com/anthropics/skills/tree/main/skills/webapp-testing)，适用于流式对话、工具调用型 Agent 和人机协作工作流。
+
+## 它能帮你什么
+
+- **全过程检查**：从发送任务到最终完成，每一步都帮你确认
+- **自动接住提问**：测试“Agent 提问—你回答—Agent 继续工作”是否顺畅
+- **不用从头再等**：保存常用测试状态，下次直接从那里继续
 
 ## 为什么需要它
 
